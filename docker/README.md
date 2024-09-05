@@ -37,7 +37,7 @@ Note : Docker should be installed on your machine and docker-compose should be i
 1. Clone the repository:
 
 ```bash 
-git clone https://github.com/007mahapra/ransomware-api.git
+git clone https://github.com/007mahapra/RestAPI_JWT_Task2.git
 ```
 2. Navigate to the project directory: Ransomware-API-Docker
 3. Run the Docker image: 
