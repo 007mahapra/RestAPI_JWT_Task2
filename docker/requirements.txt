@@ -1,0 +1,10 @@
+# flask 
+# flask_sqlalchemy 
+# flask_jwt_extended
+# requests==2.31.0
+
+Flask==2.2.5
+Flask-SQLAlchemy==3.0.4
+Werkzeug
+PyJWT==2.8.0
+flask-cors

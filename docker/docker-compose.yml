@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=server.py
+      - FLASK_ENV=development
+      - SECRET_KEY=your_secret_key
+      - DEFAULT_ADMIN_USERNAME=admin
+      - DEFAULT_ADMIN_PASSWORD=password
+    volumes:
+      - .:/app
+    container_name: product_service_container1
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s
+    # command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+  # client:
+  #   build: .
+  #   depends_on:
+  #     app:
+  #       condition: service_healthy
+  #   command: ["python", "client.py"]
+  #   environment:
+  #     - API_URL=http://app:5000
+  #   container_name: product_service_client

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"], input[type="password"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        #logout-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        #logout-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button id="logout-button" onclick="logout()">Logout</button>
+
+    <div class="container" id="login-container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="login-message" class="error"></div>
+    </div>
+
+    <div class="container" id="product-container" style="display:none;">
+        <h2>Product Management</h2>
+        <button onclick="showProducts()">View All Products</button>
+        <button onclick="showUsers()">View All Users</button>
+        
+       <input type="text" id="product-name" placeholder="Product Name">
+        <input type="text" id="product-description" placeholder="Product Description">
+        <button onclick="addProduct()">Create Product</button>
+
+        <input type="text" id="product-id" placeholder="Product ID (for single product view)">
+        <button onclick="getProductById()">Get Single Product</button>
+
+        <div id="product-message" class="error"></div>
+        <div id="product-success" class="success"></div>
+        <div id="products-list"></div>
+        <div id="users-list"></div>
+        <div id="single-product"></div>
+    </div>
+
+    <script>
+        // Maha : Toggle div function
+        function toggleDivs(ids) {
+            ids.forEach(id => {
+                const div = document.getElementById(id);
+                if (div) {
+                    div.style.display = 'none'
+                }
+            });
+        }
+
+        let token = null;
+         // Utility function to standardize the rest calls    
+        function makeRequest(url, method, body = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-access-token': token
+                },
+                body: body ? JSON.stringify(body) : null
+            };
+
+            return fetch(url, options)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(data => {
+                            throw { message: data.message, status: response.status };
+                        });
+                    }
+                });
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            makeRequest('http://localhost:5000/login', 'POST', { username, password })
+                .then(data => {
+                    token = data.token;
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('product-container').style.display = 'block';
+                    document.getElementById('logout-button').style.display = 'block'
+                })
+                .catch(error => {
+                    document.getElementById('login-message').innerText = `Error ${error.status}: ${error.message}`;
+                });
+        }
+
+        function logout() {
+            token = null;
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('product-container').style.display = 'none';
+        }
+
+        function showProducts() {
+            makeRequest('http://localhost:5000/products', 'GET')
+                .then(data => {
+                    const productList = data.map(product => `
+                        <div >
+                            <strong>ID:</strong> ${product.id}<br>
+                            <strong>Name:</strong> ${product.name}<br>
+                            <strong>Description:</strong> ${product.description}<br><br>
+                        </div>
+                    `).join('');
+                    document.getElementById('products-list').innerHTML = productList;
+                    document.getElementById('product-message').innerText = '';
+                    // Hide non-required div
+
+                })
+                .catch(error => {
+                    document.getElementById('product-message').innerText = `Error ${error.status}: ${error.message}`;
+
+                });
+        }
+
+        function showUsers() {
+            makeRequest('http://localhost:5000/users', 'GET')
+                .then(data => {
+                    const userList = data.map(user => `
+                        <div>
+                            <strong>ID:</strong> ${user.id}<br>
+                            <strong>Username:</strong> ${user.username}<br>
+                            <strong>Role:</strong> ${user.role}<br><br>
+                        </div>
+                    `).join('');
+                    document.getElementById('users-list').innerHTML = userList;
+                    document.getElementById('product-message').innerText = '';
+
+                })
+                .catch(error => {
+                    document.getElementById('product-message').innerText = `Error ${error.status}: ${error.message}`;
+                });
+        }
+
+        function addProduct() {
+            //TO DO : Mahaveer - Hide the other non-required div
+
+
+            const productName = document.getElementById('product-name').value;
+            const productDescription = document.getElementById('product-description').value;
+
+            makeRequest('http://localhost:5000/product', 'POST', { name: productName, description: productDescription })
+                .then(data => {
+                    document.getElementById('product-success').innerText = data.message;
+                    document.getElementById('product-message').innerText = '';
+                })
+                .catch(error => {
+                    document.getElementById('product-message').innerText = `Error ${error.status}: ${error.message}`;
+                });
+        }
+
+        function getProductById() {
+            const productId = document.getElementById('product-id').value;
+
+            makeRequest(`http://localhost:5000/product/${productId}`, 'GET')
+                .then(product => {
+                    document.getElementById('single-product').innerHTML = `
+                        <div>
+                            <strong>ID:</strong> ${product.id}<br>
+                            <strong>Name:</strong> ${product.name}<br>
+                            <strong>Description:</strong> ${product.description}<br><br>
+                        </div>
+                    `;
+                    document.getElementById('product-message').innerText = '';
+                })
+                .catch(error => {
+                    document.getElementById('product-message').innerText = `Error ${error.status}: ${error.message}`;
+                });
+        }
+    </script>
+</body>
+</html>
